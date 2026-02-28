@@ -1,0 +1,31 @@
+# profiles.yml para Lakehouse Databricks con 3 ambientes
+# Las variables de entorno son inyectadas por GitHub Actions o locales mediante .env
+lakehouse_banking_pci:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      catalog: dev_catalog
+      schema: dev_banking
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 4
+
+    qa:
+      type: databricks
+      catalog: qa_catalog
+      schema: qa_banking
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 8
+
+    prod:
+      type: databricks
+      catalog: prod_catalog
+      schema: prod_banking
+      host: "{{ env_var('DATABRICKS_HOST') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 16

@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: core_banking
+    description: "Tablas transaccionales y maestras del Core Bancario (Capa Bronze / RAW)"
+    database: lakehouse_prod
+    schema: bronze
+    tables:
+      # 1. Clientes
+      - name: customers
+        description: "Maestro de clientes bancarios."
+      # 2. Productos Activos (Colocaciones como Créditos)
+      - name: active_products
+        description: "Colocaciones o créditos otorgados a clientes."
+      # 3. Productos Pasivos (Captaciones como Cuentas de Ahorro)
+      - name: passive_products
+        description: "Cuentas de ahorro, corrientes o inversiones de clientes."
+      # 4. Transacciones Masivas
+      - name: transactions
+        description: "Volumen masivo de transacciones (50MM+)."
+      # 5. Buró de Crédito
+      - name: credit_bureau
+        description: "Datos externos de historial crediticio del cliente."

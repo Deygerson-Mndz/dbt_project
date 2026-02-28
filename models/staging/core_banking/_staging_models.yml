@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Capa Staging para Customers. Contiene el enmascaramiento de PII via SHA-256."
+    columns:
+      - name: customer_id
+        description: "ID natural del cliente."
+        tests:
+          - unique
+          - not_null
+      - name: tax_id_hashed
+        description: "Hash PCI-DSS del identificador fiscal."
+        tests:
+          - not_null
+          
+  - name: stg_transactions
+    description: "Capa Staging para Transactions. Volumen masivo de eventos financieros."
+    columns:
+      - name: transaction_id
+        description: "ID único de la transacción bancaria."
+        tests:
+          - unique
+          - not_null
+      - name: transaction_type
+        description: "Categoría de evento (PURCHASE, TRANSFER, etc.)"
+        tests:
+          - accepted_values:
+              values: ['PURCHASE', 'TRANSFER', 'WITHDRAWAL', 'DEPOSIT']

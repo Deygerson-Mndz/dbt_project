@@ -1,0 +1,6 @@
+customer_id,first_name,last_name,date_of_birth,tax_id,email,phone_number,created_at
+CUST-001,John,Doe,1985-06-15,TAX-987654321,john.doe@example.com,555-0100,2023-01-10T08:30:00Z
+CUST-002,Jane,Smith,1990-11-20,TAX-123456789,jane.smith@example.com,555-0101,2023-02-15T09:45:00Z
+CUST-003,Alice,Johnson,1978-03-05,TAX-456789123,alice.j@example.com,555-0102,2022-11-20T14:15:00Z
+CUST-004,Bob,Brown,1995-12-10,TAX-789123456,bob.b@example.com,555-0103,2024-01-05T10:00:00Z
+CUST-005,Unknown,User,2000-01-01,,unknown@example.com,555-0104,2024-02-28T16:20:00Z

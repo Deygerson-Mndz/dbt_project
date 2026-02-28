@@ -1,0 +1,53 @@
+name: 'lakehouse_banking_pci'
+version: '1.0.0'
+config-version: 2
+profile: 'databricks_banking'
+
+vars:
+  default_currency: 'USD'
+
+on-run-start:
+  - "{{ audit_run_start() }}"
+on-run-end:
+  - "{{ audit_run_end() }}"
+
+models:
+  lakehouse_banking_pci:
+    # Genera Vistas para herramientas BI clásicas
+    +post-hook:
+      - "{{ generate_bi_views(this) }}"
+      - "{{ audit_model_execution(this) }}"
+      
+    bronze:
+      +materialized: table
+      +tags: ["bronze"]
+      
+    silver:
+      +materialized: incremental
+      +file_format: delta
+      +tags: ["silver", "pci_compliant"]
+      
+      transactions:
+        +materialized: incremental
+        +incremental_strategy: merge
+        # INCREMENTALIDAD EXTREMA: Solo inserta/actualiza de forma determinista usando una 
+        # comparación de hashes, previniendo sobreescritura inútil y bajando I/O.
+        +unique_key: 'transaction_id'
+        +merge_update_columns: ['amount_usd', 'validation_reason']
+        
+        # LIQUID CLUSTERING (Performance & Cost Benchmark)
+        # Sustituye a partition_by. Databricks auto-ordena el layout del archivo Delta
+        # maximizando Z-ORDER en columnas de alta cardinalidad para Data Skipping.
+        +cluster_by: ['customer_id', 'transaction_date']
+
+    gold:
+      +materialized: table
+      +tags: ["gold"]
+      
+      # VISTAS MATERIALIZADAS (< 2 Segundos Latencia) para KPIs Críticos (Customer 360)
+      # Depende de Databricks SQL Serverless / DLT para mantener el estado fresco.
+      customer_360:
+        +materialized: materialized_view
+        +schedule: 
+          cron: "0 0 * * * ?"
+        +cluster_by: ['customer_id']

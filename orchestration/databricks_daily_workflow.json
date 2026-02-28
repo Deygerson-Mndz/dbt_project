@@ -1,0 +1,53 @@
+{
+  "name": "Daily_Lakehouse_Banking_ETL",
+  "email_notifications": {
+    "on_failure": ["data-ops@tu-banco.com"]
+  },
+  "schedule": {
+    "quartz_cron_expression": "0 0 2 * * ?",
+    "timezone_id": "America/New_York",
+    "pause_status": "UNPAUSED"
+  },
+  "max_concurrent_runs": 1,
+  "tasks": [
+    {
+      "task_key": "dbt_seed_and_sources",
+      "description": "Carga de seeds y chequeo de sources en Bronze",
+      "dbt_task": {
+        "command": "dbt seed && dbt source freshness"
+      }
+    },
+    {
+      "task_key": "dbt_run_staging",
+      "depends_on": [{"task_key": "dbt_seed_and_sources"}],
+      "description": "Transformaciones Staging (PII Masking)",
+      "dbt_task": {
+        "command": "dbt run --select staging"
+      }
+    },
+    {
+      "task_key": "dbt_run_silver",
+      "depends_on": [{"task_key": "dbt_run_staging"}],
+      "description": "Capa Silver: Separacion de validos y rechazados, incremental load 50MM+",
+      "dbt_task": {
+        "command": "dbt run --select silver"
+      }
+    },
+    {
+      "task_key": "dbt_run_gold",
+      "depends_on": [{"task_key": "dbt_run_silver"}],
+      "description": "Modelos analíticos finales, Dimensiones y Facts (BI Layer)",
+      "dbt_task": {
+        "command": "dbt run --select gold"
+      }
+    },
+    {
+      "task_key": "dbt_test_contracts",
+      "depends_on": [{"task_key": "dbt_run_gold"}],
+      "description": "Unit testing y validacion de Data Contracts en cada capa",
+      "dbt_task": {
+        "command": "dbt test"
+      }
+    }
+  ]
+}

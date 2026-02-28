@@ -1,0 +1,21 @@
+[sqlfluff]
+dialect = databricks
+templater = dbt
+runaway_limit = 10
+max_line_length = 120
+indentation_width = 4
+
+# Ignorar las macros y archivos generados automáticamente para reducir warnings
+exclude_rules = L031, L034
+
+[sqlfluff:templater:dbt]
+project_dir = ./
+profiles_dir = ./
+
+[sqlfluff:rules:L010]
+# Palabras clave en mayúsculas
+capitalisation_policy = upper
+
+[sqlfluff:rules:L014]
+# Nombres de identificadores (columnas, alias) en minúsculas
+extended_capitalisation_policy = lower

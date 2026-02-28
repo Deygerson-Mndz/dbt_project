@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Dimensión Lakehouse (Gold) de clientes."
+    columns:
+      - name: customer_id
+        description: "Llave de la dimensión."
+        tests:
+          - unique
+          - not_null
+      - name: credit_score
+        description: "Score de riesgo crediticio normalizado. Contract: Entre 300 y 850 (FICO estándar)."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 300
+              max_value: 850
+              row_condition: "credit_score is not null"
+          # TESTING DE REGRESIÓN (DATA DRIFT): Asegurar que el promedio global no baje
+          # drásticamente, previniendo un colapso en los modelos de Machine Learning.
+          - dbt_expectations.expect_column_mean_to_be_between:
+              min_value: 550
+              max_value: 750
+              row_condition: "credit_score is not null"
+
+  - name: fct_transactions
+    description: "Fact table incremental en Gold preparada para Looker/PowerBI."
+    columns:
+      - name: transaction_id
+        tests:
+          - unique
+          - not_null
+      - name: is_high_value_tx
+        description: "Métrica derivada booleana verdadera si superó los 10k USD."
+        tests:
+          - not_null

@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: int_transactions
+    description: "Capa Silver transaccional. Data Contract: Solo admite transacciones donde el schema y quality checks han pasado exitosamente y validation_reason es 'OK'."
+    columns:
+      - name: transaction_id
+        description: "Primary key validada."
+        tests:
+          - unique
+          - not_null
+      - name: amount_usd
+        description: "Monto financiero homogeneizado a dólares. Contract: No puede ser negativo o nulo en Silver."
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0.01  # Data Quality Contract: el monto aprobado base debe ser > 0
+
+  - name: int_transactions_rej
+    description: "Capa Silver de Rechazos (Observabilidad). Registros que incumplieron Data Contracts en Staging/Bronze."
+    columns:
+      - name: rejection_reason
+        description: "Motivo exacto por el que la transacción falló las reglas de calidad (ej. Amount <= 0)."
+        tests:
+          - not_null
