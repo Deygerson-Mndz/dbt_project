@@ -1,25 +1,87 @@
 version: 2
 
 models:
+
+  # ============================================================
+  # SILVER - TRANSACCIONES VÁLIDAS
+  # ============================================================
+
   - name: int_transactions
-    description: "Capa Silver transaccional. Data Contract: Solo admite transacciones donde el schema y quality checks han pasado exitosamente y validation_reason es 'OK'."
+    description: >
+      Capa Silver transaccional.
+      Data Contract: Solo admite transacciones validadas en staging
+      donde validation_reason = 'OK'.
+      Arquitectura incremental merge determinista.
+
     columns:
+
       - name: transaction_id
-        description: "Primary key validada."
+        description: "Primary Key validada y única en Silver."
         tests:
-          - unique
           - not_null
+          - unique
+
+      - name: customer_id
+        description: "Identificador del cliente. Debe existir y no ser nulo."
+        tests:
+          - not_null
+
       - name: amount_usd
-        description: "Monto financiero homogeneizado a dólares. Contract: No puede ser negativo o nulo en Silver."
+        description: >
+          Monto financiero en USD.
+          Contract: Debe ser > 0.
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0.01  # Data Quality Contract: el monto aprobado base debe ser > 0
+              min_value: 0.01
+
+      - name: transaction_date
+        description: "Fecha original normalizada."
+        tests:
+          - not_null
+
+      - name: transaction_date_dt
+        description: "Fecha derivada para partición y performance."
+        tests:
+          - not_null
+
+      - name: card_number_hashed
+        description: "PAN hasheado conforme a políticas PCI."
+        tests:
+          - not_null
+
+      - name: record_hash
+        description: "Hash determinista para control de cambios en merge."
+        tests:
+          - not_null
+
+
+  # ============================================================
+  # SILVER - TRANSACCIONES RECHAZADAS
+  # ============================================================
 
   - name: int_transactions_rej
-    description: "Capa Silver de Rechazos (Observabilidad). Registros que incumplieron Data Contracts en Staging/Bronze."
+    description: >
+      Capa Silver de Rechazos.
+      Contiene transacciones que incumplieron reglas
+      de Data Quality definidas en staging.
+
     columns:
+
+      - name: transaction_id
+        description: "Identificador original de la transacción rechazada."
+        tests:
+          - not_null
+
       - name: rejection_reason
-        description: "Motivo exacto por el que la transacción falló las reglas de calidad (ej. Amount <= 0)."
+        description: "Motivo específico del rechazo."
+        tests:
+          - not_null
+
+      - name: attempted_amount
+        description: "Monto original que intentó procesarse."
+
+      - name: transaction_date_dt
+        description: "Fecha derivada para partición."
         tests:
           - not_null
